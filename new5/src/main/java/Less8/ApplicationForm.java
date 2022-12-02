@@ -9,116 +9,142 @@ import Less8.listeners.ClearFieldButtonListener;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.math.BigDecimal;
 
 public class ApplicationForm extends JFrame {
+    // JFrame класс который рисует графику
     private final String appTitle;
+    // делает графику, пока не видна
     private JTextField inputField;
+    private JButton display;
+    private JPanel panel;
+    private BigDecimal result;
+    private String lastCommand;
+    private boolean start;
 
     public ApplicationForm(String appTitle) {
         super(appTitle);
         this.appTitle = appTitle;
-        //      setBounds(1700, 1500, 450, 870); //поменять
+
+
+        setBounds(170, 150, 250, 370); //поменять, размеры окна относительно крана и его расположение.
         setDefaultCloseOperation(EXIT_ON_CLOSE);  // закрывает приложение
         setAlwaysOnTop(true);  // поверх остальных приложений
 
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout()); //компановщик для всех элементов, сюда можно добавить кнопки указав их расположение
 
-        add(createTopPanel(), BorderLayout.NORTH);
+        add(createTopPanel(), BorderLayout.NORTH); // панель с выводами на севере
 
-        setJMenuBar(createMenu());
+        setJMenuBar(createMenu()); // название панели сверху и сама панель
 
-        add(createCenterPanel(), BorderLayout.CENTER);
+        add(createCenterPanel(), BorderLayout.CENTER); // указание расположения кнопки на севере
 
+        setVisible(true); // делает графику видимой
 
         //     add(new Button("Копка"), BorderLayout.WEST);
 
-        setVisible(true);
     }
 
     private JPanel createCenterPanel() {
-        JPanel centerPanel = new JPanel();
+        // центральная панель с кнопками
+        JPanel centerPanel = new JPanel();  // создание самой панели
         centerPanel.setLayout(new BorderLayout());
 
-        ActionListener buttonListener = new ButtonListener(inputField);
+        ActionListener buttonListener = new ButtonListener(inputField); // подтягивание формы из слушателя кнопки ButtonListener.
+        // inputField для отправления панели куда вводятся данные
 
-        centerPanel.add(createDigitsPanel(buttonListener), BorderLayout.CENTER);
-        centerPanel.add(createOperatorsPanel(buttonListener), BorderLayout.WEST);
+        centerPanel.add(createDigitsPanel(buttonListener), BorderLayout.CENTER); // панель с цифрами
+        centerPanel.add(createOperatorsPanel(buttonListener), BorderLayout.WEST); // панель с математическими действиями
 
-        return centerPanel;
+        return centerPanel; // возврат панели чтобы прикрепить к JFrame
     }
 
     private JPanel createTopPanel() {
-        JPanel top = new JPanel();
+        // панель с выводом данных
+        JPanel top = new JPanel(); // создание панели вывода
         top.setLayout(new BorderLayout());
-        inputField = new JTextField();
-        inputField.setEditable(false);
-        top.add(inputField);
+        inputField = new JTextField(); //поле для ввода с названием JTextField
+        inputField.setEditable(false); // запрет на изменения
+        top.add(inputField); // добавление данных
 
-        inputField.setFont(new Font("Arial", Font.PLAIN, 25));
-        inputField.setMargin(new Insets(8,0, 8, 0));
-        inputField.setBackground(new Color(123,213,59));
+        inputField.setFont(new Font("Arial", Font.PLAIN, 25)); // выбор шрифта
+        inputField.setMargin(new Insets(8,0, 8, 0)); //отступы снаружи сверху, слева, снизу, справа
+        inputField.setBackground(new Color(213, 159, 21)); // цвет заднего фона
 
-        //      inputField.setText("(1+2) / 3 = 12");
+        //      inputField.setText("(1+2) / 3 = 12"); ввели для отображения чтобы поле было не пустым
 
-        return top;
+        return top; // возврат панели
     }
 
     private JPanel createDigitsPanel(ActionListener buttonListener) {
-        JPanel digitsPanel = new JPanel();
+        /*панель цифр*/
+        JPanel digitsPanel = new JPanel(); //создание самой панели
 
-        digitsPanel.setLayout(new GridLayout(4, 3));
+        digitsPanel.setLayout(new GridLayout(4, 3)); // количество строк и столбцов
 
         for (int i = 0; i < 10; i++){
             String buttonTitle = (i == 9) ? "0" : String.valueOf(i + 1);
-            JButton btn = new DigitJBatton(buttonTitle);
-            btn.addActionListener(buttonListener); // слушатель кнопок
+            JButton btn = new DigitJBatton(buttonTitle); // создание кнопки, пока без значения, наследуем свойства из класса DigitJBatton
+            btn.addActionListener(buttonListener); // слушатель кнопок, отображение кнопки на панели, подтягивание свойств из названия кнопки в панель
             digitsPanel.add(btn);
         }
 
-        JButton calc = new OperatorJBatton("=");
-        digitsPanel.add(calc);
-        calc.setEnabled(false);
+        JButton calc = new OperatorJBatton("="); // кнопка равно с наследование свойств из OperatorJBatton.
+        digitsPanel.add(calc); //возвращаем кнопку на панель с числами
+     //   calc.setEnabled(false); // выключить кнопку равно
 
-        JButton clear = new OperatorJBatton("c");
-        clear.addActionListener(new ClearFieldButtonListener(inputField)); // слушатель очистки
-        digitsPanel.add(clear);
+        JButton clear = new OperatorJBatton("c"); // кнопка очистить с наследование свойств из OperatorJBatton.
+        clear.addActionListener(new ClearFieldButtonListener(inputField)); // слушатель очистки, действие кнопки
+        digitsPanel.add(clear); //возвращаем кнопку на панель с числами
 
 
-        return digitsPanel;
+        return digitsPanel; //возврат панели с числами
     }
 
     private JPanel createOperatorsPanel(ActionListener buttonListener) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(4, 1));
+        // панель математических символов
+        JPanel panel = new JPanel(); // создание панели
+        panel.setLayout(new GridLayout(4, 1)); //размещение в 4 строки 1 столбик
 
-        JButton minus = new OperatorJBatton("-");
+        result = BigDecimal.ZERO;
+        String lastCommand = "=";
+        start = true;
+        display = new JButton("0");
+        display.setEnabled(false);
+        display.setFont(display.getFont().deriveFont(50f));
+        add(display, BorderLayout.NORTH);
+
+
+        JButton minus = new OperatorJBatton("-"); //кнопка -
+
         minus.addActionListener(buttonListener);
         panel.add(minus);
 
-        JButton plus = new OperatorJBatton("+");
+        JButton plus = new OperatorJBatton("+"); //кнопка сложить
         plus.addActionListener(buttonListener);
         panel.add(plus);
 
-        JButton multiply = new OperatorJBatton("x");
+        JButton multiply = new OperatorJBatton("x"); //кнопка умножить
         multiply.addActionListener(buttonListener);
         panel.add(multiply);
 
-        JButton devide = new OperatorJBatton("/");
+        JButton devide = new OperatorJBatton("/"); //кнопка делить
         devide.addActionListener(buttonListener);
         panel.add(devide);
 
-        return  panel;
+        return  panel; // возврат панели
     }
 
     private JMenuBar createMenu() {
-        JMenuBar menuBar = new JMenuBar();
+        //верхняя панель
+        JMenuBar menuBar = new JMenuBar(); //элемент меню
 
-        JMenu menuFile = new JMenu("File");
-        JMenuItem clear = new JMenuItem("Clear"); // вынос класса очистки
-        clear.addActionListener(new ClearFieldButtonListener(inputField));  //слушатель очистки в меню
+        JMenu menuFile = new JMenu("File"); // создание раздела меню файл
+        JMenuItem clear = new JMenuItem("Clear"); // вынос класса очистки в панель меню
+        clear.addActionListener(new ClearFieldButtonListener(inputField));  //слушатель очистки в меню, логика работы кнопки
         menuFile.add(clear);
 
-        JMenuItem exit = new JMenuItem("Exit");
+        JMenuItem exit = new JMenuItem("Exit");  //создание раздела меню выход
    /*     exit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -130,9 +156,9 @@ public class ApplicationForm extends JFrame {
         menuFile.add(exit);
         menuBar.add(menuFile);
 
-        menuBar.add(new JMenuItem("Help"));
-        menuBar.add(new JMenuItem("About"));
+        menuBar.add(new JMenuItem("Help")); // создание пунктов меню в верхней панели
+        menuBar.add(new JMenuItem("About")); // создание пунктов меню в верхней панели
 
-        return menuBar;
+        return menuBar; //возврат метода меню
     }
 }
