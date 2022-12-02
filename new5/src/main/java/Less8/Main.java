@@ -1,4 +1,5 @@
 package Less8;
+import javax.swing.*;
 
 // запуск приложения
 public class Main {
